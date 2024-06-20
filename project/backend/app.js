@@ -57,7 +57,6 @@ app.post('/api/users/register', async (req, res) => {
 		preferenzeMusicali,
 		gruppiMusicali,
 	} = req.body;
-	console.log(`🧊 ~ req.body: `, req.body);
 
 	try {
 		const hashedPassword = await bcrypt.hash(password, 10);
