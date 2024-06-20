@@ -3,39 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register</title>
+  <title>Registrazione</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Register</h1>
-  <form id="registerForm">
-    <label for="nome">Nome:</label>
-    <input type="text" id="nome" name="nome" required><br>
-    
-    <label for="cognome">Cognome:</label>
-    <input type="text" id="cognome" name="cognome" required><br>
-    
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required><br>
-    
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required><br>
-    
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required><br>
-    
-    <label for="eta">Età:</label>
-    <input type="number" id="eta" name="eta" required><br>
-    
-    <label for="preferenzeMusicali">Preferenze Musicali:</label>
-    <input type="text" id="preferenzeMusicali" name="preferenzeMusicali" required><br>
-    
-    <label for="gruppiMusicali">Gruppi Musicali Preferiti:</label>
-    <input type="text" id="gruppiMusicali" name="gruppiMusicali" required><br>
-    
-    <button type="submit">Register</button>
-  </form>
-
+  <h1>Registrazione</h1>
+  <div class="container">
+    <div class="box">
+      <form id="registerForm">
+        <label for="nome">Nome :</label>
+        <input type="text" id="nome" name="nome" required><br>
+        <label for="cognome">Cognome :</label>
+        <input type="text" id="cognome" name="cognome" required><br>
+        <label for="username">Username :</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="email">Email :</label>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">Password :</label>
+        <input type="password" id="password" name="password" required><br>
+        <label for="eta">Età</label>
+        <select name="eta" id="eta" required>
+          <option value="18">18</option>
+          <option value="19">19</option>
+          <option value="20">20</option>
+        </select><br>
+        <label for="preferenzeMusicali">Preferenze Musicali:</label>
+        <input type="text" id="preferenzeMusicali" name="preferenzeMusicali" placeholder="es. musica pop, musica jazz"><br>
+        <label for="gruppiMusicali">Gruppi Musicali Preferiti:</label>
+        <input type="text" id="gruppiMusicali" name="gruppiMusicali" placeholder="es. Beatles, Queen"><br>
+        <button type="submit">Registrati</button>
+      </form>
+    </div>
+  </div>
   <script src="scripts.js"></script>
 </body>
 </html>
