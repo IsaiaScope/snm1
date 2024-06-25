@@ -1,88 +1,122 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
 const app = express();
-app.use(bodyParser.json());
-app.use((req, res, next) => {
-	res.header('Access-Control-Allow-Origin', '*');
-	res.header(
-		'Access-Control-Allow-Headers',
-		'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-	);
-	res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
-	next();
-});
 const PORT = process.env.PORT || 3000;
 
+// Middleware
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+  next();
+});
+
+// MongoDB Connection
 mongoose.set('strictQuery', true);
 mongoose
-	.connect(process.env.MONGO_URI, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => {
-		console.log('Connected to MongoDB');
-	})
-	.catch(err => {
-		console.error('Error connecting to MongoDB:', err);
-	});
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+  });
 
+// User Schema and Model
 const userSchema = new mongoose.Schema({
-	nome: String,
-	cognome: String,
-	username: { type: String },
-	email: { type: String, required: true, unique: true },
-	password: String,
-	eta: Number,
-	preferenzeMusicali: [String],
-	gruppiMusicali: [String],
+  nome: String,
+  cognome: String,
+  username: { type: String },
+  email: { type: String, required: true, unique: true },
+  password: String,
+  eta: Number,
+  preferenzeMusicali: [String],
+  gruppiMusicali: [String],
 });
 
 const User = mongoose.model('User', userSchema);
 
+// Register User
 app.post('/api/users/register', async (req, res) => {
-	const {
-		nome,
-		cognome,
-		username,
-		email,
-		password,
-		eta,
-		preferenzeMusicali,
-		gruppiMusicali,
-	} = req.body;
+  const {
+    nome,
+    cognome,
+    username,
+    email,
+    password,
+    eta,
+    preferenzeMusicali,
+    gruppiMusicali,
+  } = req.body;
 
-	try {
-		const hashedPassword = await bcrypt.hash(password, 10);
-		const newUser = new User({
-			nome,
-			cognome,
-			username,
-			email,
-			password: hashedPassword,
-			eta,
-			preferenzeMusicali,
-			gruppiMusicali,
-		});
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-		const existingUser = await User.findOne({ email });
-		if (existingUser) {
-			return res.status(400).json({ message: 'email already exists' });
-		}
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      nome,
+      cognome,
+      username,
+      email,
+      password: hashedPassword,
+      eta,
+      preferenzeMusicali,
+      gruppiMusicali,
+    });
 
-		await newUser.save();
-		res.status(201).json({ message: 'User registered successfully' });
-	} catch (err) {
-		res.status(500).json({ message: 'Error registering user', error: err });
-	}
+    await newUser.save();
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error registering user', error: err });
+  }
 });
 
+// Login User
+app.post('/api/users/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    console.log('Login attempt:', { email, password }); // Log input data
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('User not found'); // Log if user not found
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('Password does not match'); // Log if password does not match
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    console.log('Login successful, token:', token); // Log successful login and token
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error('Error during login:', error); // Log any server error
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+// Start Server
 app.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
