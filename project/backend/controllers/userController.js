@@ -62,3 +62,38 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+// Update a user
+exports.updateUser = async (req, res) => {
+  try {
+    const { email, updatedData } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    Object.assign(user, updatedData);
+    await user.save();
+
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user', error });
+  }
+};
+
+// Delete a user
+exports.deleteUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOneAndDelete({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user', error });
+  }
+};
