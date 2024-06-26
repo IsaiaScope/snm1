@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const userRoutes = require('./routes/userRoutes');
+const User = require('./models/User');
 
 dotenv.config();
 
@@ -35,20 +37,6 @@ mongoose
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
   });
-
-// User Schema and Model
-const userSchema = new mongoose.Schema({
-  nome: String,
-  cognome: String,
-  username: { type: String },
-  email: { type: String, required: true, unique: true },
-  password: String,
-  eta: Number,
-  preferenzeMusicali: [String],
-  gruppiMusicali: [String],
-});
-
-const User = mongoose.model('User', userSchema);
 
 // Register User
 app.post('/api/users/register', async (req, res) => {
@@ -100,7 +88,7 @@ app.post('/api/users/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.log('Password does not match'); // Log if password does not match
       return res.status(400).json({ message: 'Invalid credentials' });
@@ -115,6 +103,9 @@ app.post('/api/users/login', async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 });
+
+// Use the router with a specific path prefix
+app.use('/api/users', userRoutes);
 
 // Start Server
 app.listen(PORT, () => {
