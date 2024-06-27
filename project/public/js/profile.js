@@ -60,7 +60,6 @@ document.getElementById('updateForm').addEventListener('submit', async function(
     preferenzeMusicali,
     gruppiMusicali
   };
-  console.log(`🧊 ~ updatedData: `, updatedData);
 
   try {
     const response = await fetch('http://127.0.0.1:3000/api/users/update', {
