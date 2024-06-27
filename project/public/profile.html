@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8">
   <title>Profilo Utente</title>
 </head>
+
 <body>
   <h1>Profilo Utente</h1>
   <p>Nome: <span id="nome"></span></p>
@@ -18,17 +20,21 @@
 
   <div id="editFormContainer" style="display:none;">
     <form id="updateForm">
-      <p>Nome: <input type="text" id="editNome" placeholder="Nome"> </form> </p></br>
+      <p>Nome: <input type="text" id="editNome" placeholder="Nome">
+      </p></br>
       <p>Cognome:<input type="text" id="editCognome" placeholder="Cognome"> </p></br>
-      <p>Username: <input type="text" id="editUsername" placeholder="Username"></p></br>
-      <p>Email:  <input type="email" id="editEmail" placeholder="Email"></p></br>
+      <p>Username: <input type="text" id="editUsername" placeholder="Username"></p>
+      </br>
+      <p>Email: <input type="email" id="editEmail" placeholder="Email"></p></br>
       <p>Età: <input type="number" id="editEta" placeholder="Età"></p></br>
-      <p>Preferenze Musicali:<input type="text" id="editPreferenzeMusicali" placeholder="Preferenze Musicali (separate da virgole)"></p></br>
-      <p>Gruppi Musicali:<input type="text" id="editGruppiMusicali" placeholder="Gruppi Musicali (separate da virgole)"></p></br>
+      <p>Preferenze Musicali:<input type="text" id="editPreferenzeMusicali"
+          placeholder="Preferenze Musicali (separate da virgole)"></p></br>
+      <p>Gruppi Musicali:<input type="text" id="editGruppiMusicali"
+          placeholder="Gruppi Musicali (separate da virgole)"></p></br>
       <button type="submit">Aggiorna</button>
     </form>
   </div>
-
   <script src="js/profile.js"></script>
 </body>
+
 </html>

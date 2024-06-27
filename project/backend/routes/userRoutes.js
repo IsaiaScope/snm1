@@ -132,14 +132,14 @@ router.put('/update', auth, async (req, res) => {
   };
 
   try {
-    let user = await User.findById(req.user.id);
+    let user = await User.findById(req.userId);
 
     if (!user) {
       return res.status(404).json({ message: 'Utente non trovato' });
     }
 
     user = await User.findByIdAndUpdate(
-      req.user.id,
+      req.userId,
       { $set: updatedData },
       { new: true }
     ).select('-password');
@@ -153,13 +153,13 @@ router.put('/update', auth, async (req, res) => {
 
 router.delete('/delete', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.userId);
 
     if (!user) {
       return res.status(404).json({ message: 'Utente non trovato' });
     }
 
-    await User.findByIdAndDelete(req.user.id);
+    await User.findByIdAndDelete(req.userId);
 
     res.json({ message: 'Utente eliminato con successo' });
   } catch (error) {
