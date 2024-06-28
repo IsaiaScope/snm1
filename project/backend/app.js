@@ -1,10 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
+const auth = require('./middleware/auth');
 const userRoutes = require('./routes/userRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
+const songRoutes = require('./routes/songRoutes');
 const User = require('./models/User');
 
 dotenv.config();
@@ -14,29 +18,24 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors());
+
+// Connessione al database
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log('Connessione al database riuscita'))
+  .catch(err => console.error('Errore di connessione al database:', err));
+
+// Middleware per gestire le intestazioni CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
   next();
 });
-
-// MongoDB Connection
-mongoose.set('strictQuery', true);
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-  });
 
 // Register User
 app.post('/api/users/register', async (req, res) => {
@@ -88,7 +87,7 @@ app.post('/api/users/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const isMatch = bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.log('Password does not match'); // Log if password does not match
       return res.status(400).json({ message: 'Invalid credentials' });
@@ -106,6 +105,8 @@ app.post('/api/users/login', async (req, res) => {
 
 // Use the router with a specific path prefix
 app.use('/api/users', userRoutes);
+app.use('/api/playlists', playlistRoutes);
+app.use('/api/songs', songRoutes);
 
 // Start Server
 app.listen(PORT, () => {
