@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const auth = require('./middleware/auth');
 const userRoutes = require('./routes/userRoutes');
 const playlistRoutes = require('./routes/playlistRoutes');
-const songRoutes = require('./routes/songRoutes');
+const songRoutes = require('./routes/playlistRoutes');
 const User = require('./models/User');
 
 dotenv.config();
