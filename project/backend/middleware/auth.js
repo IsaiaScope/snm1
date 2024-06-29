@@ -1,6 +1,4 @@
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-dotenv.config();
 
 function auth(req, res, next) {
   const token = req.header('Authorization').replace('Bearer ', '');
@@ -10,7 +8,7 @@ function auth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+    req.userId = decoded.user.id;
     next();
   } catch (error) {
     console.error('Errore di autenticazione:', error);

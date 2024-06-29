@@ -2,98 +2,146 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Register a new user
-exports.register = async (req, res) => {
-  try {
-    const { nome, cognome, username, email, password, eta, preferenzeMusicali, gruppiMusicali } = req.body;
+async function register(req, res) {
+	const {
+		nome,
+		cognome,
+		username,
+		email,
+		password,
+		eta,
+		preferenzeMusicali,
+		gruppiMusicali,
+	} = req.body;
 
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+	try {
+		let user = await User.findOne({ email });
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+		if (user) {
+			return res.status(400).json({ message: 'Email già registrata' });
+		}
 
-    // Create a new user
-    const user = new User({
-      nome,
-      cognome,
-      username,
-      email,
-      password: hashedPassword,
-      eta,
-      preferenzeMusicali,
-      gruppiMusicali
-    });
+		const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save the user to the database
-    await user.save();
+		user = new User({
+			nome,
+			cognome,
+			username,
+			email,
+			password: hashedPassword,
+			eta,
+			preferenzeMusicali,
+			gruppiMusicali,
+		});
 
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-};
+		await user.save();
 
-// Login a user
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+	} catch (error) {
+		console.error('Errore durante la registrazione:', error);
+		res.status(500).json({ message: 'Errore durante la registrazione' });
+	}
+}
 
-    // Check if the user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+async function login(req, res) {
+	const { email, password } = req.body;
 
-    // Check if the password matches
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
+	try {
+		const user = await User.findOne({ email });
 
-    // Create a token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+		if (!user) {
+			return res.status(404).json({ message: 'Credenziali non valide' });
+		}
 
-    res.status(200).json({ token });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-};
+		const isMatch = await bcrypt.compare(password, user.password);
 
-// Update a user
-exports.updateUser = async (req, res) => {
-  try {
-    const { email, updatedData } = req.body;
+		if (!isMatch) {
+			return res.status(404).json({ message: 'Credenziali non valide' });
+		}
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
-    }
+		const payload = {
+			user: {
+				id: user.id,
+			},
+		};
 
-    Object.assign(user, updatedData);
-    await user.save();
+		jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1y' }, (err, token) => {
+			if (err) throw err;
+			res.status(201).json({ token });
+		});
+	} catch (error) {
+		console.error('Errore durante il login:', error);
+		res.status(500).json({ message: 'Errore durante il login' });
+	}
+}
 
-    res.status(200).json({ message: 'User updated successfully', user });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating user', error });
-  }
-};
+async function profile(req, res) {
+	try {
+		const user = await User.findById(req.userId).select('-password');
+		if (!user) {
+			return res.status(404).json({ message: 'Utente non trovato' });
+		}
+		res.json(user);
+	} catch (error) {
+		console.error('Errore nel recupero del profilo:', error);
+		res.status(500).json({ message: 'Errore nel recupero del profilo' });
+	}
+}
 
-// Delete a user
-exports.deleteUser = async (req, res) => {
-  try {
-    const { email } = req.body;
+async function update(req, res) {
+	const { nome, cognome, username, email, eta, preferenzeMusicali, gruppiMusicali } =
+		req.body;
 
-    const user = await User.findOneAndDelete({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'User not found' });
-    }
+	const updatedData = {
+		nome,
+		cognome,
+		username,
+		email,
+		eta,
+		preferenzeMusicali,
+		gruppiMusicali,
+	};
 
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting user', error });
-  }
+	try {
+		let user = await User.findById(req.userId);
+
+		if (!user) {
+			return res.status(404).json({ message: 'Utente non trovato' });
+		}
+
+		user = await User.findByIdAndUpdate(
+			req.userId,
+			{ $set: updatedData },
+			{ new: true }
+		).select('-password');
+
+		res.json(user);
+	} catch (error) {
+		console.error("Errore durante l'aggiornamento del profilo:", error);
+		res.status(500).json({ message: "Errore durante l'aggiornamento del profilo" });
+	}
+}
+
+async function cancel(req, res) {
+	try {
+		const user = await User.findById(req.userId);
+
+		if (!user) {
+			return res.status(404).json({ message: 'Utente non trovato' });
+		}
+
+		await User.findByIdAndDelete(req.userId);
+
+		res.json({ message: 'Utente eliminato con successo' });
+	} catch (error) {
+		console.error("Errore durante l'eliminazione dell'utente:", error);
+		res.status(500).json({ message: "Errore durante l'eliminazione dell'utente" });
+	}
+}
+
+module.exports = {
+	register,
+	login,
+	profile,
+	update,
+	cancel,
 };
