@@ -3,11 +3,12 @@ const generateRandomString = require('../utils/randomString');
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const redirect_uri = process.env.SPOTIFY_REDIRECT_URI;
-const redirect_uri_after_login = process.env.SPOTIFY_REDIRECT_URI_AFTER_LOGIN;
+const redirect_uri = process.env.SPOTIFY_REDIRECT_URL;
+const redirect_uri_after_login = process.env.SPOTIFY_REDIRECT_URL_AFTER_LOGIN;
 const stateKey = process.env.SPOTIFY_STATE_KEY;
-const url = 'https://accounts.spotify.com/api/token';
-const url_user = 'https://api.spotify.com/v1/me';
+const url_token = process.env.SPOTIFY_URL_TOKEN;
+const url_user = process.env.SPOTIFY_URL_USER;
+const url_auth = process.env.SPOTIFY_URL_AUTH;
 const headers = {
 	'Content-Type': 'application/x-www-form-urlencoded',
 	'Authorization':
@@ -18,9 +19,10 @@ async function login(req, res) {
 	const state = generateRandomString(16);
 	res.cookie(stateKey, state);
 
-	const scope = 'user-read-private user-read-email';
+	const scope =
+		'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-library-read user-library-modify';
 	res.redirect(
-		'https://accounts.spotify.com/authorize?' +
+		url_auth +
 			querystring.stringify({
 				response_type: 'code',
 				client_id,
@@ -50,13 +52,13 @@ async function callback(req, res) {
 			headers,
 			body: new URLSearchParams({
 				code: code,
-				redirect_uri: redirect_uri,
+				redirect_uri,
 				grant_type: 'authorization_code',
 			}),
 		};
 
 		try {
-			const response = await fetch(url, authOptions);
+			const response = await fetch(url_token, authOptions);
 			const body = await response.json();
 			if (response.ok) {
 				const access_token = body.access_token;
@@ -66,18 +68,39 @@ async function callback(req, res) {
 					headers: { 'Authorization': 'Bearer ' + access_token },
 				};
 
-				// use the access token to access the Spotify Web API
 				const userProfileResponse = await fetch(url_user, options);
-				const userProfileBody = await userProfileResponse.json();
-				console.log(userProfileBody);
+				const { id: spotifyId, uri: spotifyUri } = await userProfileResponse.json();
 
-				res.redirect(
-					redirect_uri_after_login +
-						querystring.stringify({
-							access_token: access_token,
-							refresh_token: refresh_token,
-						})
-				);
+				const twentyYearsInMs = 365 * 24 * 60 * 60 * 1000; // 1 years in milliseconds
+				const expires = new Date(Date.now() + twentyYearsInMs);
+
+				res.cookie('spotifyAccessToken', access_token, {
+					httpOnly: true,
+					secure: true,
+					expires,
+				});
+				res.cookie('spotifyRefreshToken', refresh_token, {
+					httpOnly: true,
+					secure: true,
+					expires,
+				});
+				res.cookie('spotifyaccessTokenExpiresAt', Date.now() + 60 * 60 * 1000, {
+					httpOnly: true,
+					secure: true,
+					expires,
+				});
+				res.cookie('spotifyId', spotifyId, {
+					httpOnly: false,
+					secure: true,
+					expires,
+				});
+				res.cookie('spotifyUri', spotifyUri, {
+					httpOnly: false,
+					secure: true,
+					expires,
+				});
+
+				res.redirect(redirect_uri_after_login);
 			} else {
 				res.redirect(
 					redirect_uri_after_login +
@@ -87,6 +110,7 @@ async function callback(req, res) {
 				);
 			}
 		} catch (error) {
+			console.log(`🧊 ~ error: `, error);
 			res.redirect(
 				redirect_uri_after_login +
 					querystring.stringify({
@@ -97,6 +121,7 @@ async function callback(req, res) {
 	}
 }
 
+// just for testing purpose
 async function refresh(req, res) {
 	const refresh_token = req.query.refresh_token;
 	const authOptions = {
@@ -109,7 +134,7 @@ async function refresh(req, res) {
 	};
 
 	try {
-		const response = await fetch(url, authOptions);
+		const response = await fetch(url_token, authOptions);
 		const body = await response.json();
 		if (response.ok) {
 			const access_token = body.access_token;
