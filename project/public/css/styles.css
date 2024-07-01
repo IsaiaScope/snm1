@@ -1,26 +1,73 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f0f0f0;
-  }
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 110vh; /* Altezza del body pari all'altezza della finestra */
+  background-color: #f0f0f0;
+  background-image: url('../sfondo.jpg'); /* Sposta una cartella su */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+  overflow: hidden; /* Nasconde lo scroll orizzontale e verticale */
   
-  h1 {
+}
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Overlay nero con opacità 0.5 */
+  z-index: 1;
+  
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white; /* Colore del testo sopra l'overlay */
+ 
+
+}
+h1, h2, h3, nav {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  color: rgb(206, 71, 248); /* Per rendere il testo visibile sopra l'overlay */
+
+  
+}
+h3, nav {
     text-align: center;
+    position: relative;
+    z-index: 2;
+    color: rgb(185, 170, 253); /* Per rendere il testo visibile sopra l'overlay */
+
   }
-  
+
   form {
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 20px ;
+    padding: 40px;
+    background-color: #d8d8fc;
+    border-radius: 30px;
+    box-shadow: 0 0 10px rgba(2, 84, 155, 0.1);
   }
   
   label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    
+  }
+
+  form label {
+    color: #000000; /* Cambia il colore del testo delle label */
   }
   
   input {
@@ -34,7 +81,7 @@ body {
   button {
     width: 100%;
     padding: 10px;
-    background-color: #007BFF;
+    background-color: #b167ee;
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -42,18 +89,19 @@ body {
   }
   
   button:hover {
-    background-color: #0056b3;
+    background-color: #b167ee;
   }
   
   nav {
     text-align: center;
     margin: 20px 0;
+    color: rgb(255, 255, 255);
   }
   
   nav a {
     margin: 0 10px;
     text-decoration: none;
-    color: #007BFF;
+    color: #b167ee;
   }
   
   nav a:hover {

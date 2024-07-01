@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestione Playlist</title>
+</head>
+<body>
+  <h1>Gestione Playlist</h1>
+  
+  <form id="createPlaylistForm">
+    <input type="text" id="title" placeholder="Titolo" required><br>
+    <input type="text" id="description" placeholder="Descrizione" required><br>
+    <input type="text" id="tags" placeholder="Tag (separati da virgole)"><br>
+    <input type="text" id="songs" placeholder="ID Canzoni (separati da virgole)"><br>
+    <button type="submit">Crea Playlist</button>
+  </form>
+  
+  <div id="playlistContainer"></div>
+
+  <script src="js/playlist.js"></script>
+</body>
+</html>
